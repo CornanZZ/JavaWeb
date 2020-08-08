@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户注册页面</title>
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+</head>
+<body>
+    <div id="wrap1" class="container">
+        <div class="row">
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <label for="inputEmail3" class="col-sm-2 control-label">Username:</label>
+                    <div class="col-sm-10">
+                        <input type="email" class="form-control" v-model="user.username" id="inputEmail3" placeholder="Username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="realName" class="col-sm-2 control-label">Realname:</label>
+                    <div class="col-sm-10">
+                        <input type="password" class="form-control" v-model="user.realname" id="realName" placeholder="Realnmae">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inputPassword3" class="col-sm-2 control-label">Password:</label>
+                    <div class="col-sm-10">
+                        <input type="password" class="form-control" v-model="user.password" id="inputPassword3" placeholder="Password">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Sex:</label>
+                    <div class="col-sm-10">
+                        <label>male</label>
+                        <input type="radio" class="inputgri" v-model="user.sex" value="m" checked="checked"/>
+                        <label>female</label>
+                        <input type="radio" class="inputgri" v-model="user.sex" value="f"/>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputCode" class="col-sm-2 control-label">验证码:</label>
+                    <div class="col-sm-3">
+                        <input type="password" class="form-control" v-model="code" id="inputCode">
+                    </div>
+                    <div class="col-sm-2">
+                        <img id="num" :src="url"/>
+                        <a href="javascript:;" @click="changeImg">换一张</a>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button type="button" @click="register" class="btn btn-default">Submit</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="./js/vue.js"></script>
+    <script src="./js/axios.min.js"></script>
+    <script>
+        const app = new Vue({
+            el:"#wrap1",
+            data:{
+                url:"",
+                code:"",
+                user:{
+                    sex:"m" //初始化为m，与控件对应
+                },    //保存用户数据，注意这里面的索引名称必须与User类对应(如user.username)
+            },
+            created(){
+                var _this = this;
+                // axios.get("http://localhost:8081/user_upload/user/getImage?time="+Math.random()).then(res=>{    //get方法必须写绝对路径吗？
+                axios.get("/user_upload/user/getImage?time="+Math.random()).then(res=>{    //get方法必须写绝对路径吗？
+                    //console.log(res.data);
+                    _this.url = res.data;
+                })
+            },
+            methods:{
+                register(){
+                    axios.post("/user_upload/user/register?code=" + this.code, this.user).then(res=>{
+                            console.log(res.data);
+                            if(res.data.status){
+                                alert(res.data.msg+"点击确认进入登录页面！");
+                                location.href="/user_upload/login.html";
+                            }
+                            else{
+                                alert(res.data.msg);
+                            }
+                        }
+                    );
+                },
+                changeImg(){    //重新提交获取，即完成图片更换
+                    var _this = this;
+                    //axios.get("http://localhost:8081/user_upload/user/getImage?time="+Math.random()).then(res=>{    //get方法必须写绝对路径吗？
+                    axios.get("/user_upload/user/getImage?time="+Math.random()).then(res=>{    //get方法必须写绝对路径吗？
+                        //console.log(res.data);
+                        _this.url = res.data;
+                    })
+                }
+            }
+        });
+    </script>
+</body>
+</html>

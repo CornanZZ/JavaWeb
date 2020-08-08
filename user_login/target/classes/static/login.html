@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户登录页面</title>
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+</head>
+<body>
+    <div id="wrap" class="container">
+        <div class="row">
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <label for="inputEmail3" class="col-sm-2 control-label">Username:</label>
+                    <div class="col-sm-10">
+                        <input type="email" class="form-control" v-model="user.username" id="inputEmail3" placeholder="Username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inputPassword3" class="col-sm-2 control-label">Password:</label>
+                    <div class="col-sm-10">
+                        <input type="password" class="form-control" v-model="user.password" id="inputPassword3" placeholder="Password">
+                    </div>
+                </div>
+
+                <div class="form-group" v-show = codeFlag=="true">
+                    <label for="inputCode" class="col-sm-2 control-label">验证码:</label>
+                    <div class="col-sm-3">
+                        <input type="password" class="form-control" v-model="code" id="inputCode">
+                    </div>
+                    <div class="col-sm-2">
+                        <img id="num" :src="url"/>
+                        <a href="javascript:;" @click="changeImg">换一张</a>
+                    </div>
+                    <!--
+                    <div class="col-sm-2">
+                        <td>
+                            <img id="num" :src="url"/>
+                            <a href="javascript:;" onclick="document.getElementById('num').src='image?'+(new Date()).getTime()">换一张</a>
+                        </td>
+                    </div>
+                    -->
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button type="button" @click="login" class="btn btn-default">Sign in</button>
+                        <button type="button" @click="gotoRegister" class="btn btn-default">Register</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!--
+        <input type="text" class="form-control" v-model="user.username" placeholder="UserName">
+        <tr></tr>
+        <input type="password" class="form-control" v-model="user.password" placeholder="Password">
+        <tr></tr>
+        <button type="button" @click="login" class="btn btn-default">Login</button>
+        -->
+
+    </div>
+
+    <script src="./js/vue.js"></script>
+    <script src="./js/axios.min.js"></script>
+    <script>
+        const app = new Vue({
+            el:"#wrap",
+            data:{
+                url:"",
+                code:"",
+                codeFlag:"false", //验证码框是否显示
+                count:0,    //密码输入错误的次数
+                user:{},    //保存用户数据，注意这里面的索引名称必须与User类对应(如user.username)
+            },
+            created(){
+                var _this = this;
+                // axios.get("http://localhost:8081/user_upload/user/getImage?time="+Math.random()).then(res=>{    //get方法必须写绝对路径吗？
+                axios.get("/user_upload/user/getImage?time="+Math.random()).then(res=>{    //get方法必须写绝对路径吗？
+                    //console.log(res.data);
+                    _this.url = res.data;
+                })
+            },
+            methods:{
+                login(){
+                    //console.log(this.user);
+                    axios.post("/user_upload/user/login?code=" + this.code + "&codeFlag=" + this.codeFlag, this.user).then(res=>{  //url上传输入(只能传串和对象)、post上传输入
+                    //axios.post("http://localhost:8081/user_upload/user/login", this.user).then(res=>{   //返回的res.data即为controller中的map
+                    //axios.post("http://47.93.8.228:8989/user_upload/user/login", this.user).then(res=>{   //返回的res.data即为controller中的map
+                    //axios.post("http://localhost:8989/user_upload/user/login", this.user).then(res=>{   //返回的res.data即为controller中的map
+                            console.log(res.data);
+                            if(res.data.status){
+                                this.count = 0;
+                                this.codeFlag = "false";
+                                alert(res.data.msg+"点击确认进入主页！");
+                                localStorage.setItem("user", JSON.stringify(res.data.user));
+                                //location.href="http://localhost:8081/user_upload/loginSuccess.html";
+                                location.href="/user_upload/loginSuccess.html";
+                            }
+                            else{
+                                if(++this.count >= 3) this.codeFlag = "true";
+                                alert(res.data.msg);
+                            }
+                        }
+                    );
+                },
+                gotoRegister(){
+                    //location.href="http://localhost:8081/user_upload/register.html";
+                    location.href="/user_upload/register.html";
+                },
+                changeImg(){    //重新提交获取，即完成图片更换
+                    var _this = this;
+                    //axios.get("http://localhost:8081/user_upload/user/getImage?time="+Math.random()).then(res=>{    //get方法必须写绝对路径吗？
+                    axios.get("/user_upload/user/getImage?time="+Math.random()).then(res=>{    //get方法必须写绝对路径吗？
+                        //console.log(res.data);
+                        _this.url = res.data;
+                    })
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
